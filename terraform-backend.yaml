@@ -1,0 +1,45 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Create S3 bucket and DynamoDB table for Terraform backend
+
+Parameters:
+  Environment:
+    Type: String
+    Description: "The environment for the backend (e.g., dev, prod)"
+    Default: "dev"
+
+Resources:
+  # S3 Bucket for Terraform state
+  TerraformStateBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "terraform-state-${Environment}"
+      VersioningConfiguration:
+        Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          - Status: Enabled
+            ExpirationInDays: 5  # Optional: Set lifecycle rule to expire old versions
+
+  # DynamoDB Table for state locking
+  TerraformStateLockTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "terraform-lock-${Environment}"
+      AttributeDefinitions:
+        - AttributeName: "LockID"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "LockID"
+          KeyType: "HASH"
+      BillingMode: PAY_PER_REQUEST  # On-demand capacity
+      TimeToLiveSpecification:
+        Enabled: false  # Optional: Enable TTL if needed
+
+Outputs:
+  BucketName:
+    Description: "The name of the S3 bucket for Terraform state"
+    Value: !Ref TerraformStateBucket
+
+  LockTableName:
+    Description: "The name of the DynamoDB table for state locking"
+    Value: !Ref TerraformStateLockTable
