@@ -30,7 +30,7 @@ jobs:
         run: echo "ENVIRONMENT=${{ github.event.inputs.environment || 'dev' }}" >> $GITHUB_ENV
 
       - name: Terraform Init
-        run: terraform init -backend-config="backend-${{ env.ENVIRONMENT }}.tfvars"
+        run: terraform init -backend-config="./environment/${{ env.ENVIRONMENT }}/backend-${{ env.ENVIRONMENT }}.tfvars"
 
       - name: Terraform Destroy
-        run: terraform destroy -var-file="${{ env.ENVIRONMENT }}.tfvars" -auto-approve
+        run: terraform destroy -var-file="./environment/${{ env.ENVIRONMENT }}/{{ env.ENVIRONMENT }}.tfvars" -auto-approve
